@@ -81,6 +81,11 @@ app.delete('/tasks/delete/:taskId', (req, res) => {
   res.json(deletedTask);
 });
 
+// 404 Handler
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Invalid url/endpoints. Please check it again.' });
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
