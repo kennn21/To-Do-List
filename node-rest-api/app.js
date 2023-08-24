@@ -10,30 +10,50 @@ app.use(bodyParser.json());
 
 // Create Task
 app.post('/tasks/create', (req, res) => {
-  const { title, description, dueDate, statusId } = req.body;
+  const tasksToCreate = Array.isArray(req.body) ? req.body : [req.body]; // Wrap single task in an array
 
-  if (!title || !description || !dueDate) { //Validation
-    return res.status(400).json({ error: 'Title, description, and due date are required fields.' }); //Error handling
+  const createdTasks = [];
+
+  for (const taskData of tasksToCreate) {
+    const { title, description, dueDate, statusId } = taskData;
+
+    if (!title || !description || !dueDate) {
+      continue;
+    }
+
+    const taskStatus = statusId || 0;
+
+    const newTask = {
+      id: tasks.length + 1,
+      title,
+      description,
+      dueDate,
+      status: taskStatus
+    };
+
+    tasks.push(newTask);
+    createdTasks.push(newTask);
   }
 
-  const taskStatus = statusId || 0
-
-  const newTask = { //defining new task object and assigning the data
-    id: tasks.length + 1,
-    title,
-    description,
-    dueDate,
-    status: taskStatus
-  };
-
-  tasks.push(newTask); //add new task to database
-  res.status(201).json(newTask);
+  if (createdTasks.length > 0) {
+    res.status(201).json(createdTasks);
+  } else {
+    res.status(400).json({ error: 'No valid tasks were provided.' });
+  }
 });
+
 
 // Read All Tasks
 app.get('/tasks', (req, res) => {
-  res.json(tasks);
+  try {
+    // If tasks were successfully fetched
+    res.status(200).json(tasks);
+  } catch (error) {
+    // If an error occurred
+    res.status(500).json({ error: `An error occurred while fetching tasks. ${error}` });
+  }
 });
+
 
 // Read Specific Task
 app.get('/tasks/:taskId', (req, res) => {
@@ -65,7 +85,7 @@ app.put('/tasks/update/:taskId', (req, res) => {
     status: status || tasks[taskIndex].status
   };
 
-  res.json(tasks[taskIndex]); //Get Task by Id
+  res.status(200).json(tasks[taskIndex]); //Set response to task with status success (200)
 });
 
 // Delete Task
